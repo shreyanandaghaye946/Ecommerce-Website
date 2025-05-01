@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Shop{% endblock %}</title>
+
+    <!-- ✅ Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .top-header {
+            background-color: #ffffff;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .search-bar {
+            flex: 1;
+            margin: 0 20px;
+        }
+
+        .search-bar input[type="text"] {
+            width: 100%;
+            padding: 7px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .auth-links a {
+            margin-left: 15px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .main-nav {
+            background-color: #007bff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .main-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .main-nav a:hover {
+            text-decoration: underline;
+        }
+
+        .carousel img {
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .product-grid {
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .product-card {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .product-card h5 {
+            margin-top: 10px;
+        }
+
+        .product-card .price {
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+        }
+
+        .btn-cart, .btn-buy {
+            width: 100%;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="logo">🛍️ MyShop</div>
+        <div class="search-bar">
+            <form method="get" action="{% url 'search' %}">
+                <input type="text" name="q" placeholder="Search products...">
+            </form>
+        </div>
+        <div class="auth-links">
+            {% if user.is_authenticated %}
+                Hello, {{ user.username }} |
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'signup' %}">Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="main-nav">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'shop' %}">Shop</a>
+        <a href="{% url 'my_account' %}">My Account</a>
+        <a href="{% url 'wishlist' %}">Wishlist</a>
+        <a href="{% url 'view_cart' %}">Cart</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact Us</a>
+    </div>
+
+    <!-- Carousel -->
+    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="https://via.placeholder.com/1200x400?text=Welcome+to+MyShop" class="d-block w-100" alt="Slide 1">
+            </div>
+            <div class="carousel-item">
+                <img src="https://via.placeholder.com/1200x400?text=Latest+Collections" class="d-block w-100" alt="Slide 2">
+            </div>
+            <div class="carousel-item">
+                <img src="https://via.placeholder.com/1200x400?text=Best+Deals+Inside" class="d-block w-100" alt="Slide 3">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        {% block content %}
+        <!-- Example product grid block (used in home.html) -->
+        <div class="text-center mt-5 mb-3">
+            <h2>🛒 Featured Products</h2>
+        </div>
+        <div class="product-grid">
+            {% for product in products %}
+                <div class="product-card">
+                    {% if product.image %}
+                        <!-- <img src="{{ product.image.url }}" alt="{{ product.name }}"> -->
+                        <img src="/static/img/front.jpg" alt="front.jpg"> 
+                    {% else %}
+                        <img src="{% static 'ecommerceapp/images/placeholder.png' %}" alt="No image">
+                    {% endif %}
+                    <h5>{{ product.name }}</h5>
+                    <p class="price">₹{{ product.price }}</p>
+
+                    <form method="post" action="{% url 'add_to_cart' product.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button class="btn btn-sm btn-primary btn-cart">Add to Cart</button>
+                    </form>
+
+                    <form method="post" action="{% url 'buy_now' product.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button class="btn btn-sm btn-success btn-buy">Buy Now</button>
+                    </form>
+                </div>
+            {% empty %}
+                <p>No products found.</p>
+            {% endfor %}
+        </div>
+        {% endblock %}
+    </div>
+
+</body>
+</html>
