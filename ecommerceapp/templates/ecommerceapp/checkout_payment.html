@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Select Payment Method</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f5;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 3rem auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary,
+        .address {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f1f1f1;
+            border-radius: 8px;
+            border-left: 5px solid #007bff;
+        }
+
+        .summary p,
+        .address p {
+            margin: 5px 0;
+        }
+
+        .product-image {
+            max-width: 100px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            padding: 1rem;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        label:hover {
+            background: #f0f0f0;
+        }
+
+        input[type="radio"] {
+            margin-right: 1rem;
+        }
+
+        .sub-options {
+            display: none;
+            margin-left: 2rem;
+        }
+
+        .sub-options input[type="text"] {
+            display: block;
+            width: 90%;
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            margin-top: 2rem;
+            padding: 10px 20px;
+            background: #28a745;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+
+        .modal-content button {
+            width: auto;
+            margin: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Select Payment Option</h2>
+
+        <!-- Product Summary -->
+        <div class="summary">
+            <h3>Product Summary</h3>
+            <img class="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
+            <p><strong>Product:</strong> {{ product.name }}</p>
+            <p><strong>Quantity:</strong> {{ quantity }}</p>
+            <p><strong>Price per item:</strong> ₹{{ product.price }}</p>
+            <p><strong>Total Price:</strong> ₹{{ product.price|floatformat:2 }} * {{ quantity }} = ₹{{total_price }}</p>
+        </div>
+
+        <!-- Address -->
+        <div class="address">
+            <h3>Delivery Address</h3>
+            <p><strong>{{ address.full_name }}</strong></p>
+            <p>{{ address.address_line }}, {{ address.city }}</p>
+            <p>{{ address.state }} - {{ address.pincode }}</p>
+            <p><strong>Phone:</strong> {{ address.mobile }}</p>
+        </div>
+
+        <!-- Payment Options Form -->
+        <form id="paymentForm" method="post" action="{% url 'checkout_payment' product.id %}">
+            {% csrf_token %}
+
+            <label><input type="radio" name="payment_method" value="cod" required> Pay on Delivery</label>
+
+            <label>
+                <input type="radio" name="payment_method" value="upi" onclick="toggleSub('upi-options')"> UPI
+            </label>
+            <div id="upi-options" class="sub-options">
+                <label><input type="radio" name="upi_choice" value="paytm"> Paytm</label>
+                <label><input type="radio" name="upi_choice" value="gpay"> Google Pay</label>
+                <label><input type="radio" name="upi_choice" value="phonepe"> PhonePe</label>
+                <label><input type="radio" name="upi_choice" value="new"> Add UPI ID</label>
+                <input type="text" name="new_upi_id" placeholder="Enter UPI ID">
+            </div>
+
+            <label>
+                <input type="radio" name="payment_method" value="card" onclick="toggleSub('card-options')">
+                Credit/Debit/ATM Card
+            </label>
+            <div id="card-options" class="sub-options">
+                <input type="text" name="card_number" placeholder="Card Number">
+                <input type="text" name="valid_thru" placeholder="Valid Thru (MM/YY)">
+                <input type="text" name="cvv" placeholder="CVV">
+            </div>
+
+            <label>
+                <input type="radio" name="payment_method" value="netbanking" onclick="toggleSub('bank-options')"> Net
+                Banking
+            </label>
+            <div id="bank-options" class="sub-options">
+                <label><input type="radio" name="bank" value="sbi"> State Bank of India</label>
+                <label><input type="radio" name="bank" value="boi"> Bank of India</label>
+                <label><input type="radio" name="bank" value="hdfc"> HDFC Bank</label>
+                <label><input type="radio" name="bank" value="uoi"> Union bank of India</label>
+                <label><input type="radio" name="bank" value="ib"> Indian Bank</label>
+                <label><input type="radio" name="bank" value="bom"> Bank of Maharashtra</label>
+                <label><input type="radio" name="bank" value="ifb"> IDFC First Bank</label>
+                <label><input type="radio" name="bank" value="ab"> Axis Bank</label>
+            </div>
+
+            <button type="button" onclick="openModal()">Place Order</button>
+
+            <!-- Confirmation Modal -->
+            <div id="confirmModal" class="modal">
+                <div class="modal-content">
+                    <h3>Confirm Your Order</h3>
+                    <button type="submit">✅ Confirm</button>
+                    <button type="button" onclick="closeModal()" style="background: #dc3545;">❌ Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleSub(id) {
+            document.querySelectorAll('.sub-options').forEach(div => div.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function openModal() {
+            document.getElementById("confirmModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("confirmModal").style.display = "none";
+        }
+
+        // Close modal if clicked outside
+        window.onclick = function (event) {
+            const modal = document.getElementById("confirmModal");
+            if (event.target === modal) modal.style.display = "none";
+        }
+    </script>
+</body>
+
+</html>
